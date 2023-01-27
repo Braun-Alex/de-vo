@@ -1,0 +1,13 @@
+{
+  "name": "Contract",
+  "version": "1.0.0",
+  "description": "Decentralized voting",
+  "main": "index.js",
+  "repository": "https://github.com/Braun-Alex/de-vo",
+  "author": "Alex Braun",
+  "license": "MIT",
+  "private": null,
+  "devDependencies": {
+    "hardhat": "^2.12.6"
+  }
+}
