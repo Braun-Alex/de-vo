@@ -49,6 +49,9 @@ contract Ballot {
             _whenCreated, 
             _duration);
         pollsPerAddress[_author].push(randomHash);
+        for (uint i = 0; i < _proposals.length; i++) {
+            votesPerPoll[randomHash].push(0);
+        }
     }
 
     function getInfo(uint _id) public view returns (Poll memory) {
