@@ -24,6 +24,10 @@ contract Ballot {
 
     mapping(uint => address[]) castedVotes;
 
+    event Create(address indexed _from, uint _timestamp, Poll _poll);
+
+    event Vote(address indexed _from, uint timestamp, string _proposal);
+
     function createPoll (string memory _title, string memory _question, 
     string[] memory _proposals, uint _duration) public {
         totalPolls += 1;
@@ -52,6 +56,7 @@ contract Ballot {
         for (uint i = 0; i < _proposals.length; i++) {
             votesPerPoll[randomHash].push(0);
         }
+        emit Create(_author, _whenCreated, pollPerId[randomHash]);
     }
 
     function getInfo(uint _id) public view returns (Poll memory) {
@@ -73,9 +78,10 @@ contract Ballot {
         return pollPerId[_pollId].proposals[winningProposalIndex];
     }
 
-    function vote(uint _pollId, string memory _pollOption) public {
+    function vote(uint _pollId, string memory _pollProposal) public {
         Poll memory poll = pollPerId[_pollId];
-        require(block.timestamp >= poll.whenCreated + poll.duration, "Poll has been finished!");
+        uint currentTimestamp = block.timestamp;
+        require(currentTimestamp >= poll.whenCreated + poll.duration, "Poll has been finished!");
         address[] memory votes = castedVotes[_pollId];
         for (uint i = 0; i < votes.length; i++) {
             if (votes[i] == msg.sender) {
@@ -86,12 +92,13 @@ contract Ballot {
         bool doesExistProposal = false;
         for (uint i = 0; i < proposals.length; i++) {
             if (keccak256(abi.encodePacked(proposals[i])) == 
-            keccak256(abi.encodePacked(_pollOption))) {
+            keccak256(abi.encodePacked(_pollProposal))) {
                 doesExistProposal = true;
                 votesPerPoll[_pollId][i] += 1;
             }
         }
         require(doesExistProposal, "Such proposal does not exist");
         castedVotes[_pollId].push(msg.sender);
+        emit Vote(msg.sender, currentTimestamp, _pollProposal);
     }
 }
