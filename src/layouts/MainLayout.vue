@@ -67,20 +67,11 @@
         <q-space />
 
         <div class="q-gutter-sm row items-center no-wrap">
-          <q-btn v-if="$q.screen.gt.sm" round dense flat color="text-grey-7" icon="apps">
-            <q-tooltip>Можливості</q-tooltip>
-          </q-btn>
-          <q-btn round dense flat color="grey-8" icon="notifications">
-            <q-badge color="red" text-color="white" floating>
-              3
-            </q-badge>
-            <q-tooltip>Сповіщення</q-tooltip>
-          </q-btn>
-          <q-btn round flat>
-            <q-avatar size="26px">
-              <img src="https://cdn.quasar.dev/img/boy-avatar.png">
-            </q-avatar>
-            <q-tooltip>Гаманець</q-tooltip>
+          <q-btn style="background: #FF0080; color: white"
+                 flat :label="walletConnected ? 'Привіт' : 'Підключити MetaMask'"
+                 :icon="walletConnected ? '' : 'account_balance_wallet'"
+                 :icon-right="walletConnected ? '' : 'account_balance_wallet'"
+                 :loading="loading" @click="simulateProgress()" no-caps>
           </q-btn>
         </div>
       </q-toolbar>
@@ -148,6 +139,8 @@ const leftDrawerOpen = ref<boolean>(false)
 const search = ref<string>('')
 const pollIdentifier = ref<string>('')
 const authorAddress = ref<string>('')
+const loading = ref<boolean>(false)
+const walletConnected = ref<boolean>(false)
 interface Link {
   icon: string,
   text: string
@@ -167,6 +160,12 @@ const details = ref<Array<Link>>(
     { icon: '', text: 'Зворотній зв\'язок' },
     { icon: 'open_in_new', text: 'Туторіал' }
   ])
+function simulateProgress () {
+  loading.value = true
+  setTimeout(() => {
+    loading.value = false
+  }, 3000)
+}
 function onClear () {
   pollIdentifier.value = ''
   authorAddress.value = ''
