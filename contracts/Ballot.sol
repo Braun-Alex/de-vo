@@ -3,10 +3,6 @@
 pragma solidity >=0.7.0;
 
 contract Ballot {
-    constructor() {}
-
-    uint256 totalPolls;
-
     struct Poll {
         string title;
         string question;
@@ -15,79 +11,45 @@ contract Ballot {
         uint256 whenCreated;
         uint duration;
     }
-    
-    mapping(uint => Poll) pollPerId;
+
+    Poll[] allPolls;
+
+    uint[][] votesPerPoll;
 
     mapping(address => uint[]) pollsPerAddress;
 
-    mapping(uint => uint[]) votesPerPoll;
-
-    mapping(uint => address[]) castedVotes;
+    mapping(address => mapping(uint => bool)) hasVoted;
 
     event Create(address indexed _from, uint _timestamp, Poll _poll);
 
     event Vote(address indexed _from, uint _timestamp, string _proposal);
 
-    function createPoll (string memory _title, string memory _question, 
+    function create(string memory _title, string memory _question, 
     string[] memory _proposals, uint _duration) public {
-        totalPolls += 1;
         address _author = msg.sender;
         uint _whenCreated = block.timestamp;
-        string memory _proposalsData;
+        uint pollId = allPolls.length;
+        pollsPerAddress[_author].push(pollId);
+        votesPerPoll.push();
         for (uint i = 0; i < _proposals.length; i++) {
-            string.concat(bytes(_proposalsData), bytes(_proposals[i]));
+            votesPerPoll[pollId].push();
         }
-        uint randomHash = uint(keccak256(abi.encodePacked(keccak256(abi.encodePacked(
-            _title,
-            _question,
-            _proposalsData,
-            _author,
-            _whenCreated,
-            _duration
-        )))));
-        pollPerId[randomHash] = Poll(
+        allPolls.push(Poll(
             _title, 
             _question, 
             _proposals, 
             _author, 
             _whenCreated, 
-            _duration);
-        pollsPerAddress[_author].push(randomHash);
-        for (uint i = 0; i < _proposals.length; i++) {
-            votesPerPoll[randomHash].push(0);
-        }
-        emit Create(_author, _whenCreated, pollPerId[randomHash]);
-    }
-
-    function getInfo(uint _id) public view returns (Poll memory) {
-        return pollPerId[_id];
-    }
-
-    function getWinningProposal(uint _pollId) public view returns (string memory) {
-        Poll memory poll = pollPerId[_pollId];
-        require(!(block.timestamp >= poll.whenCreated + poll.duration), "Poll has not been finished!");
-        uint[] memory votes = votesPerPoll[_pollId];
-        uint winningProposalIndex = 0;
-        uint maxCount = 0;
-        for (uint i = 0; i < votes.length; i++) {
-            if (votes[i] > maxCount) {
-                maxCount = votes[i];
-                winningProposalIndex = i;
-            }
-        }
-        return pollPerId[_pollId].proposals[winningProposalIndex];
+            _duration));
+        emit Create(_author, _whenCreated, allPolls[pollId]);
     }
 
     function vote(uint _pollId, string memory _pollProposal) public {
-        Poll memory poll = pollPerId[_pollId];
+        Poll memory poll = allPolls[_pollId];
         uint currentTimestamp = block.timestamp;
         require(currentTimestamp >= poll.whenCreated + poll.duration, "Poll has been finished!");
-        address[] memory votes = castedVotes[_pollId];
-        for (uint i = 0; i < votes.length; i++) {
-            if (votes[i] == msg.sender) {
-                revert("Voter has already voted");
-            }
-        }
+        address voter = msg.sender;
+        require(!hasVoted[voter][_pollId], "Voter has already voted");
         string[] memory proposals = poll.proposals;
         bool doesExistProposal = false;
         for (uint i = 0; i < proposals.length; i++) {
@@ -98,7 +60,34 @@ contract Ballot {
             }
         }
         require(doesExistProposal, "Such proposal does not exist");
-        castedVotes[_pollId].push(msg.sender);
-        emit Vote(msg.sender, currentTimestamp, _pollProposal);
+        hasVoted[voter][_pollId] = true;
+        emit Vote(voter, currentTimestamp, _pollProposal);
+    }
+
+    function getPoll(uint _pollId) public view returns (Poll memory) {
+        return allPolls[_pollId];
+    }
+
+    function getAllPolls() public view returns (Poll[] memory) {
+        return allPolls;
+    }
+
+    function getTotalPolls() public view returns (uint) {
+        return allPolls.length;
+    }
+
+    function getWinningProposal(uint _pollId) public view returns (string memory) {
+        Poll memory poll = allPolls[_pollId];
+        require(!(block.timestamp >= poll.whenCreated + poll.duration), "Poll has not been finished yet!");
+        uint[] memory votes = votesPerPoll[_pollId];
+        uint winningProposalIndex = 0;
+        uint maxCount = 0;
+        for (uint i = 0; i < votes.length; i++) {
+            if (votes[i] > maxCount) {
+                maxCount = votes[i];
+                winningProposalIndex = i;
+            }
+        }
+        return allPolls[_pollId].proposals[winningProposalIndex];
     }
 }
