@@ -69,11 +69,11 @@
         <div class="q-gutter-sm row items-center no-wrap">
           <q-btn style="background: #FF0080; color: white"
                  flat :label="walletConnected ?
-                   String(walletAddress.slice(0, 4) + '...' + walletAddress.slice(-4))
-                   : 'Підключити MetaMask'"
+                   String(walletAddress.slice(0, 5) + '...' + walletAddress.slice(-4))
+                   : 'Під\'єднати MetaMask'"
                  :icon="walletConnected ? '' : 'account_balance_wallet'"
                  :icon-right="walletConnected ? '' : 'account_balance_wallet'"
-                 :loading="waitingForConnection" @click="walletConnected ? disconnectWallet() :
+                 @click="walletConnected ? disconnectWallet() :
                  connectWallet()" no-caps>
           </q-btn>
         </div>
@@ -138,7 +138,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useQuasar } from 'quasar'
+import { useQuasar, QSpinnerGears } from 'quasar'
 import { ethers } from 'ethers'
 import { abi } from 'Ballot.json'
 const $q = useQuasar()
@@ -183,25 +183,37 @@ function onClear () {
 function toggleLeftDrawer () {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
-async function connectWallet () {
+function connectWallet () {
   // @ts-expect-error Window.ethers not TS
   if (typeof window.ethereum !== 'undefined') {
+    $q.loading.show({
+      spinner: QSpinnerGears,
+      message: 'Під\'єднання гаманця...'
+    })
     // @ts-expect-error Window.ethers not TS
     const provider = new ethers.providers.Web3Provider(window.ethereum)
-    await provider.send('eth_requestAccounts', [])
-    const signer = provider.getSigner()
-    signer.getAddress().then((address) => {
-      walletAddress.value = address
-    }).catch((error) => {
+    provider.send('eth_requestAccounts', []).then(() => {
       $q.notify({
-        type: 'negative',
-        message: error.message
+        type: "positive",
+        message: "Гаманець успішно під'єднано"
       })
+      const signer = provider.getSigner()
+      signer.getAddress().then((address) => {
+        walletAddress.value = address
+      })
+      $q.localStorage.set("EVM address", walletAddress.value)
+    }).catch(() => {
+      $q.notify({
+        type: "negative",
+        message: "Запит на під'єднання відхилено"
+      })
+    }).finally(() => {
+      $q.loading.hide()
     })
   } else {
     $q.notify({
       type: 'negative',
-      message: "MetaMask is not installed"
+      message: "MetaMask не встановлено"
     })
   }
 }
