@@ -70,7 +70,7 @@
           <q-btn style="background: #FF0080; color: white"
                  flat :label="walletConnected ?
                    String(walletAddress.slice(0, 5) + '...' + walletAddress.slice(-4))
-                   : 'Під\'єднати MetaMask'"
+                   : 'Під\'єднати гаманець MetaMask'"
                  :icon="walletConnected ? '' : 'account_balance_wallet'"
                  :icon-right="walletConnected ? '' : 'account_balance_wallet'"
                  @click="walletConnected ? disconnectWallet(): connectWallet()" no-caps>
@@ -136,16 +136,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref } from 'vue'
 import { useQuasar, QSpinnerGears } from 'quasar'
 import { ethers } from 'ethers'
-import { abi } from 'Ballot.json'
 const $q = useQuasar()
 const leftDrawerOpen = ref<boolean>(false)
 const search = ref<string>('')
 const pollIdentifier = ref<string>('')
 const authorAddress = ref<string>('')
-const loading = ref<boolean>(false)
 const walletConnected = ref<boolean>(false)
 const walletAddress = ref<string>('')
 if ($q.localStorage.getItem('Wallet connected') != null) {
@@ -174,12 +172,6 @@ const details = ref<Array<Link>>(
     { icon: 'open_in_new', text: 'Туторіал' }
   ])
 
-function simulateProgress () {
-  loading.value = true
-  setTimeout(() => {
-    loading.value = false
-  }, 3000)
-}
 function onClear () {
   pollIdentifier.value = ''
   authorAddress.value = ''
