@@ -73,8 +73,7 @@
                    : 'Під\'єднати MetaMask'"
                  :icon="walletConnected ? '' : 'account_balance_wallet'"
                  :icon-right="walletConnected ? '' : 'account_balance_wallet'"
-                 @click="walletConnected ? disconnectWallet() :
-                 connectWallet()" no-caps>
+                 @click="walletConnected ? disconnectWallet(): connectWallet()" no-caps>
           </q-btn>
         </div>
       </q-toolbar>
@@ -147,10 +146,14 @@ const search = ref<string>('')
 const pollIdentifier = ref<string>('')
 const authorAddress = ref<string>('')
 const loading = ref<boolean>(false)
+const walletConnected = ref<boolean>(false)
 const walletAddress = ref<string>('')
-const walletConnected = computed(() => {
-  return walletAddress.value.length !== 0
-})
+if ($q.localStorage.getItem('Wallet connected') != null) {
+  walletConnected.value = $q.localStorage.getItem('Wallet connected') as boolean
+}
+if ($q.localStorage.getItem('Wallet address') != null) {
+  walletAddress.value = $q.localStorage.getItem('Wallet address') as string
+}
 interface Link {
   icon: string,
   text: string
@@ -170,6 +173,7 @@ const details = ref<Array<Link>>(
     { icon: '', text: 'Зворотній зв\'язок' },
     { icon: 'open_in_new', text: 'Туторіал' }
   ])
+
 function simulateProgress () {
   loading.value = true
   setTimeout(() => {
@@ -183,6 +187,7 @@ function onClear () {
 function toggleLeftDrawer () {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
+
 function connectWallet () {
   // @ts-expect-error Window.ethers not TS
   if (typeof window.ethereum !== 'undefined') {
@@ -194,18 +199,20 @@ function connectWallet () {
     const provider = new ethers.providers.Web3Provider(window.ethereum)
     provider.send('eth_requestAccounts', []).then(() => {
       $q.notify({
-        type: "positive",
-        message: "Гаманець успішно під'єднано"
+        type: 'positive',
+        message: 'Гаманець успішно під\'єднано'
       })
       const signer = provider.getSigner()
       signer.getAddress().then((address) => {
         walletAddress.value = address
+        walletConnected.value = true
+        $q.localStorage.set('Wallet address', walletAddress.value)
+        $q.localStorage.set('Wallet connected', walletConnected.value)
       })
-      $q.localStorage.set("EVM address", walletAddress.value)
     }).catch(() => {
       $q.notify({
-        type: "negative",
-        message: "Запит на під'єднання відхилено"
+        type: 'negative',
+        message: 'Запит на під\'єднання відхилено'
       })
     }).finally(() => {
       $q.loading.hide()
@@ -213,9 +220,19 @@ function connectWallet () {
   } else {
     $q.notify({
       type: 'negative',
-      message: "MetaMask не встановлено"
+      message: 'MetaMask не встановлено'
     })
   }
+}
+function disconnectWallet () {
+  walletConnected.value = false
+  walletAddress.value = ''
+  $q.localStorage.set('Wallet address', walletConnected.value)
+  $q.localStorage.set('Wallet connected', walletAddress.value)
+  $q.notify({
+    type: 'info',
+    message: 'Гаманець від\'єднано'
+  })
 }
 </script>
 
