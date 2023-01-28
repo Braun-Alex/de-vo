@@ -68,10 +68,13 @@
 
         <div class="q-gutter-sm row items-center no-wrap">
           <q-btn style="background: #FF0080; color: white"
-                 flat :label="walletConnected ? 'Привіт' : 'Підключити MetaMask'"
+                 flat :label="walletConnected ?
+                   String(walletAddress.slice(0, 4) + '...' + walletAddress.slice(-4))
+                   : 'Підключити MetaMask'"
                  :icon="walletConnected ? '' : 'account_balance_wallet'"
                  :icon-right="walletConnected ? '' : 'account_balance_wallet'"
-                 :loading="loading" @click="simulateProgress()" no-caps>
+                 :loading="waitingForConnection" @click="walletConnected ? disconnectWallet() :
+                 connectWallet()" no-caps>
           </q-btn>
         </div>
       </q-toolbar>
@@ -134,13 +137,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { useQuasar } from 'quasar'
+import { ethers } from 'ethers'
+import { abi } from 'Ballot.json'
+const $q = useQuasar()
 const leftDrawerOpen = ref<boolean>(false)
 const search = ref<string>('')
 const pollIdentifier = ref<string>('')
 const authorAddress = ref<string>('')
 const loading = ref<boolean>(false)
-const walletConnected = ref<boolean>(false)
+const walletAddress = ref<string>('')
+const walletConnected = computed(() => {
+  return walletAddress.value.length !== 0
+})
 interface Link {
   icon: string,
   text: string
@@ -172,6 +182,28 @@ function onClear () {
 }
 function toggleLeftDrawer () {
   leftDrawerOpen.value = !leftDrawerOpen.value
+}
+async function connectWallet () {
+  // @ts-expect-error Window.ethers not TS
+  if (typeof window.ethereum !== 'undefined') {
+    // @ts-expect-error Window.ethers not TS
+    const provider = new ethers.providers.Web3Provider(window.ethereum)
+    await provider.send('eth_requestAccounts', [])
+    const signer = provider.getSigner()
+    signer.getAddress().then((address) => {
+      walletAddress.value = address
+    }).catch((error) => {
+      $q.notify({
+        type: 'negative',
+        message: error.message
+      })
+    })
+  } else {
+    $q.notify({
+      type: 'negative',
+      message: "MetaMask is not installed"
+    })
+  }
 }
 </script>
 
