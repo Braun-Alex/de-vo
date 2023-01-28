@@ -22,7 +22,7 @@ contract Ballot {
 
     event Create(address indexed _from, uint _timestamp, Poll _poll);
 
-    event Vote(address indexed _from, uint timestamp, string _proposal);
+    event Vote(address indexed _from, uint _timestamp, string _proposal);
 
     function create(string memory _title, string memory _question, 
     string[] memory _proposals, uint _duration) public {
