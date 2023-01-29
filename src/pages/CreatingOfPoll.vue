@@ -62,8 +62,6 @@
 <script setup lang="ts">
 import { ref, Ref } from 'vue'
 import { useQuasar } from 'quasar'
-import { ethers } from 'ethers'
-import { abi } from 'src/Ballot.json'
 const $q = useQuasar()
 const name = ref(null)
 const age = ref(null)
@@ -101,7 +99,3 @@ function createProposal (val: any, done: any) {
   done(val, 'add-unique')
 }
 </script>
-
-<style scoped>
-
-</style>
