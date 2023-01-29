@@ -13,6 +13,20 @@
 import { Todo, Meta } from 'components/models'
 import ExampleComponent from 'components/ExampleComponent.vue'
 import { ref } from 'vue'
+import { ethers } from 'ethers'
+import { abi } from 'Ballot.json'
+
+interface Poll {
+  title: string,
+  question: string,
+  proposals: string[],
+  author: string,
+  whenCreated: Date,
+  duration: number
+}
+
+const contractAddress = process.env.VUE_APP_BALLOT_CONTRACT
+const allPolls = ref<Poll[]>([])
 
 const todos = ref<Todo[]>([
   {
@@ -39,4 +53,18 @@ const todos = ref<Todo[]>([
 const meta = ref<Meta>({
   totalCount: 1200
 })
+
+async function retrievePolls () {
+  allPolls.value = []
+  // @ts-expect-error Window.ethers not TS
+  if (typeof window.ethereum !== 'undefined') {
+    // @ts-expect-error Window.ethers not TS
+    const provider = new ethers.providers.Web3Provider(window.ethereum)
+    const contract = new ethers.Contract(
+      contractAddress as string,
+      abi,
+      provider
+    )
+  }
+}
 </script>
