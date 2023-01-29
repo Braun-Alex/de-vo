@@ -1,11 +1,8 @@
 <template>
   <q-page class="row items-center justify-evenly">
-    <example-component
-      title="Контент"
-      active
-      :todos="todos"
-      :meta="meta"
-    ></example-component>
+    <q-btn @click="retrievePolls()">
+      Retrieve polls
+    </q-btn>
   </q-page>
 </template>
 
@@ -13,8 +10,9 @@
 import { Todo, Meta } from 'components/models'
 import ExampleComponent from 'components/ExampleComponent.vue'
 import { ref } from 'vue'
+import { useQuasar } from 'quasar'
 import { ethers } from 'ethers'
-import { abi } from 'Ballot.json'
+import { abi } from 'src/Ballot.json'
 
 interface Poll {
   title: string,
@@ -25,34 +23,9 @@ interface Poll {
   duration: number
 }
 
+const $q = useQuasar()
 const contractAddress = process.env.VUE_APP_BALLOT_CONTRACT
 const allPolls = ref<Poll[]>([])
-
-const todos = ref<Todo[]>([
-  {
-    id: 1,
-    content: 'Один'
-  },
-  {
-    id: 2,
-    content: 'Два'
-  },
-  {
-    id: 3,
-    content: 'Три'
-  },
-  {
-    id: 4,
-    content: 'Чотири'
-  },
-  {
-    id: 5,
-    content: 'П\'ять'
-  }
-])
-const meta = ref<Meta>({
-  totalCount: 1200
-})
 
 async function retrievePolls () {
   allPolls.value = []
@@ -65,6 +38,28 @@ async function retrievePolls () {
       abi,
       provider
     )
+    try {
+      const data = await contract.getAllPolls()
+      data.forEach((poll: any) => {
+        allPolls.value.push({
+          title: poll.title,
+          question: poll.question,
+          proposals: poll.proposals,
+          author: poll.author,
+          whenCreated: new Date(poll.whenCreated * 1000),
+          duration: poll.duration
+        })
+      })
+      $q.notify({
+        type: 'positive',
+        message: allPolls.value.toString()
+      })
+    } catch (error: any) {
+      $q.notify({
+        type: 'negative',
+        message: error.message
+      })
+    }
   }
 }
 </script>
