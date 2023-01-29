@@ -88,12 +88,30 @@
     >
       <q-scroll-area class="fit">
         <q-list padding class="text-grey-8">
-          <q-item class="GNL__drawer-item" v-ripple v-for="link in polls" :key="link.text" clickable>
+          <q-item class="GNL__drawer-item"
+                  :to="walletConnected ? '/creating' : ''"
+                  v-ripple clickable @click="() => {
+            if (!walletConnected.value) {
+              $q.notify({
+              type: 'negative',
+              message: 'Гаманець не під\'єднано'
+              })
+            }
+          }">
             <q-item-section avatar>
-              <q-icon :name="link.icon" />
+              <q-icon name="add_circle" />
             </q-item-section>
             <q-item-section>
-              <q-item-label>{{ link.text }}</q-item-label>
+              <q-item-label>Створити голосування</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item class="GNL__drawer-item" v-ripple clickable>
+            <q-item-section avatar>
+              <q-icon name="edit" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Проголосувати</q-item-label>
             </q-item-section>
           </q-item>
 
@@ -136,7 +154,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, provide } from 'vue'
 import { useQuasar, QSpinnerGears } from 'quasar'
 import { ethers } from 'ethers'
 const $q = useQuasar()
@@ -146,21 +164,19 @@ const pollIdentifier = ref<string>('')
 const authorAddress = ref<string>('')
 const walletConnected = ref<boolean>(false)
 const walletAddress = ref<string>('')
+const contractMutated = ref<boolean>(false)
 if ($q.localStorage.getItem('Wallet connected') != null) {
   walletConnected.value = $q.localStorage.getItem('Wallet connected') as boolean
 }
 if ($q.localStorage.getItem('Wallet address') != null) {
   walletAddress.value = $q.localStorage.getItem('Wallet address') as string
 }
+
 interface Link {
   icon: string,
   text: string
 }
-const polls = ref<Array<Link>>(
-  [
-    { icon: 'add_circle', text: 'Створити голосування' },
-    { icon: 'edit', text: 'Отримати статистичні дані' }
-  ])
+
 const notations = ref<Array<Link>>(
   [
     { icon: 'flag', text: 'Повідомити про порушення авторських прав' },
@@ -171,6 +187,8 @@ const details = ref<Array<Link>>(
     { icon: '', text: 'Зворотній зв\'язок' },
     { icon: 'open_in_new', text: 'Туторіал' }
   ])
+
+provide('contractMutated', contractMutated)
 
 function onClear () {
   pollIdentifier.value = ''
@@ -216,6 +234,7 @@ function connectWallet () {
     })
   }
 }
+
 function disconnectWallet () {
   walletConnected.value = false
   walletAddress.value = ''
@@ -226,6 +245,7 @@ function disconnectWallet () {
     message: 'Гаманець від\'єднано'
   })
 }
+
 </script>
 
 <style lang="sass">
