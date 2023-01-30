@@ -8,7 +8,7 @@
     >
       <q-input
         outlined
-        v-model="name"
+        v-model="title"
         label="Назва опитування"
         hint="Назва має відображати зміст опитування"
         clearable
@@ -17,13 +17,14 @@
         autogrow
         maxlength="100"
         :rules="[
-          val => val && val.length > 0 || 'Назва опитування не може бути порожньою'
+          val => val && val.length > 0 || 'Поле назви опитування не може бути порожньою',
+          val => val.length >= 2 || 'Назва опитування не може бути такою короткою'
           ]"
       />
 
       <q-input
         outlined
-        v-model="age"
+        v-model="question"
         label="Запитання"
         hint="Запитання, яке поставлено на порядок голосування"
         clearable
@@ -32,12 +33,14 @@
         autogrow
         maxlength="100"
         :rules="[
-          val => val && val.length > 0 || 'Запитання до опитування не може бути порожнім'
+          val => val && val.length > 0 || 'Поле запитання до опитування не може бути порожнім',
+          val => val.length >= 6 || 'Запитання до опитування не може бути таким коротким'
         ]"
       />
 
       <q-select
-        label="Створіть варіанти відповідей в опитуванні"
+        label="Створіть список варіантів відповідей в опитуванні"
+        hint="Учасник голосування матиме можливість обрати бажаний варіант зі списку"
         outlined
         v-model="proposals"
         use-input
@@ -46,13 +49,33 @@
         hide-dropdown-icon
         input-debounce="0"
         @new-value="createProposal"
+        :rules="[
+          val => val && val.length > 0 || 'Список варіантей відповідей не може бути порожнім',
+          val => val.length > 1 || 'Список має складатися принаймні з двох варіантей відповідей'
+        ]"
       />
 
-      <q-toggle v-model="accept" label="Я погоджуюся з тим, що голосування буде створено он-чейн" />
+      <q-input
+        outlined
+        type="number"
+        v-model="duration"
+        label="Тривалість опитування"
+        hint="Голосування триватиме вказану кількість годин"
+        clearable
+        lazy-rules
+        autogrow
+        :rules="[
+          val => val !== null && val !== '' || 'Поле тривалості опитування не може бути порожньою',
+          val => val > 0 || 'Поле тривалості опитування має бути додатнім цілим числом'
+        ]"
+      />
+
+      <q-toggle v-model="accept"
+                label="Я погоджуюся з тим, що голосування буде створено он-чейн" />
 
       <div>
-        <q-btn label="Створити" type="submit" color="primary"/>
-        <q-btn label="Відізвати" type="reset" color="primary" flat class="q-ml-sm" />
+        <q-btn label="Створити голосування" type="submit" color="primary"/>
+        <q-btn label="Відізвати зміни" type="reset" color="primary" flat class="q-ml-sm" />
       </div>
     </q-form>
 
@@ -60,42 +83,51 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref } from 'vue'
-import { useQuasar } from 'quasar'
+import { ref, Ref, inject } from 'vue'
+import { useQuasar, format } from 'quasar'
 const $q = useQuasar()
-const name = ref(null)
-const age = ref(null)
-const accept = ref(false)
+const title = ref(null)
+const question = ref(null)
 const proposals: Ref<string[] | null> = ref(null)
+const duration = ref(null)
+const accept = ref(false)
+const walletConnected = ref(false)
+
+inject('walletConnected', walletConnected)
+
 function onSubmit () {
   if (accept.value !== true) {
     $q.notify({
       color: 'red-5',
       textColor: 'white',
       icon: 'warning',
-      message: 'You need to accept the license and terms first'
+      message: 'Вам потрібно надати згоду'
+    })
+  } else if (!walletConnected.value) {
+    $q.notify({
+      color: 'red-5',
+      textColor: 'white',
+      icon: 'warning',
+      message: 'Вам потрібно під\'єднати гаманець MetaMask для створення голосування он-чейн'
     })
   } else {
     $q.notify({
-      color: 'green-4',
+      color: 'green-3',
       textColor: 'white',
       icon: 'cloud_done',
-      message: 'Submitted'
+      message: 'Відправлено'
     })
   }
 }
 
 function onReset () {
-  name.value = null
-  age.value = null
+  title.value = null
+  question.value = null
+  proposals.value = null
   accept.value = false
-  $q.notify({
-    type: 'positive',
-    message: (proposals.value as string[]).toString()
-  })
 }
 
-function createProposal (val: any, done: any) {
-  done(val, 'add-unique')
+function createProposal (val: string, done: any) {
+  done(format.capitalize(val.toLowerCase()), 'add-unique')
 }
 </script>
