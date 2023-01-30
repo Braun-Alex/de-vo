@@ -188,6 +188,7 @@ const details = ref<Array<Link>>(
     { icon: 'open_in_new', text: 'Туторіал' }
   ])
 
+provide('walletConnected', walletConnected)
 provide('contractMutated', contractMutated)
 
 function onClear () {

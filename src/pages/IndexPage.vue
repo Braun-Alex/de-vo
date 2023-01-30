@@ -1,8 +1,18 @@
 <template>
   <q-page class="row items-center justify-evenly">
-    <q-btn @click="retrievePolls()">
+    <q-btn @click="retrievePolls()" no-caps>
       Retrieve polls
     </q-btn>
+    <q-list bordered separator>
+      <q-item v-for="poll in allPolls" :key="poll.whenCreated" clickable v-ripple>
+        <q-item-section>{{ poll.title }}</q-item-section>
+        <q-item-section>{{ poll.question }}</q-item-section>
+        <q-item-section>{{ poll.proposals.join(', ') }}</q-item-section>
+        <q-item-section>{{ poll.author }}</q-item-section>
+        <q-item-section>{{ poll.whenCreated }}</q-item-section>
+        <q-item-section>{{ poll.duration }}</q-item-section>
+      </q-item>
+    </q-list>
   </q-page>
 </template>
 
@@ -51,10 +61,6 @@ async function retrievePolls () {
           whenCreated: new Date(poll.whenCreated * 1000),
           duration: poll.duration
         })
-      })
-      $q.notify({
-        type: 'positive',
-        message: allPolls.value.toString()
       })
     } catch (error: any) {
       $q.notify({

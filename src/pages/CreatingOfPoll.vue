@@ -96,12 +96,9 @@ const durationInSeconds: ComputedRef<number | null> = computed(() => {
   return duration.value === null ? null : 3600 * duration.value
 })
 const accept = ref(false)
-const walletConnected = ref(false)
+const walletConnected = inject<Ref<boolean>>('walletConnected') as Ref<boolean>
 const contractAddress = process.env.VUE_APP_BALLOT_CONTRACT
-const contractMutated = ref(false)
-
-inject('walletConnected', walletConnected)
-inject('contractMutated', contractMutated)
+const contractMutated = inject<Ref<boolean>>('contractMutated') as Ref<boolean>
 
 function onSubmit () {
   if (accept.value !== true) {
@@ -127,7 +124,7 @@ function onSubmit () {
       const contract = new ethers.Contract(
         contractAddress as string,
         abi,
-        provider
+        signer
       )
       $q.loading.show({
         spinner: QSpinnerGears,
@@ -139,7 +136,7 @@ function onSubmit () {
           question.value,
           proposals.value,
           durationInSeconds.value, {
-            gasLimit: 300000
+            gasLimit: 30000000
           }).then((transaction: any) => {
           $q.loading.hide()
           $q.loading.show({
