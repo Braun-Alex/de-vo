@@ -89,15 +89,8 @@
       <q-scroll-area class="fit">
         <q-list padding class="text-grey-8">
           <q-item class="GNL__drawer-item"
-                  :to="walletConnected ? '/creating' : ''"
-                  v-ripple clickable @click="() => {
-            if (!walletConnected.value) {
-              $q.notify({
-              type: 'negative',
-              message: 'Гаманець не під\'єднано'
-              })
-            }
-          }">
+                  to="/creating"
+                  v-ripple clickable>
             <q-item-section avatar>
               <q-icon name="add_circle" />
             </q-item-section>

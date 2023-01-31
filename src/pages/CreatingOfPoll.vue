@@ -103,16 +103,12 @@ const contractMutated = inject<Ref<boolean>>('contractMutated') as Ref<boolean>
 function onSubmit () {
   if (accept.value !== true) {
     $q.notify({
-      color: 'red-5',
-      textColor: 'white',
-      icon: 'warning',
+      type: 'negative',
       message: 'Вам потрібно надати згоду'
     })
   } else if (!walletConnected.value) {
     $q.notify({
-      color: 'red-5',
-      textColor: 'white',
-      icon: 'warning',
+      type: 'negative',
       message: 'Вам потрібно під\'єднати гаманець MetaMask для створення голосування он-чейн'
     })
   } else {
@@ -128,54 +124,46 @@ function onSubmit () {
       )
       $q.loading.show({
         spinner: QSpinnerGears,
-        message: 'Підписання транзакції створення голосування...'
+        message: 'Підписання транзакції...'
       })
       try {
         contract.create(
           title.value,
           question.value,
           proposals.value,
-          durationInSeconds.value, {
-            gasLimit: 30000000
-          }).then((transaction: any) => {
+          durationInSeconds.value).then((transaction: any) => {
           $q.loading.hide()
           $q.loading.show({
             spinner: QSpinnerGears,
-            message: 'Обробка транзакції валідаторами і її включення у блок блокчейну...'
+            message: 'Обробка транзакції...'
           })
           transaction.wait().then(() => {
             $q.notify({
-              color: 'green-3',
-              textColor: 'white',
+              type: 'positive',
               icon: 'cloud_done',
               message: 'Голосування було успішно створено он-чейн'
             })
             contractMutated.value = true
             contractMutated.value = false
-          }).catch(() => {
+          }).catch((error: any) => {
             $q.notify({
-              color: 'red-5',
-              textColor: 'white',
-              icon: 'warning',
-              message: 'Обробку транзакції було відхилено валідаторами. Спробуйте ще раз'
+              type: 'negative',
+              message: 'У процесі обробки транзакції виникла помилка: ' + error.message
             })
+          }).finally(() => {
+            $q.loading.hide()
           })
         }).catch(() => {
+          $q.loading.hide()
           $q.notify({
-            color: 'red-5',
-            textColor: 'white',
-            icon: 'warning',
+            type: 'negative',
             message: 'Підписання транзакції було відхилено'
           })
-        }).finally(() => {
-          $q.loading.hide()
         })
       } catch (error: any) {
         $q.notify({
-          color: 'red-5',
-          textColor: 'white',
-          icon: 'warning',
-          message: error.message
+          type: 'negative',
+          message: 'Виникла помилка у створенні голосування: ' + error.message
         })
       }
     } else {
