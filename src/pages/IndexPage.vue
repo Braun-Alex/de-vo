@@ -1,19 +1,47 @@
 <template>
-  <q-page class="row items-center justify-evenly">
+  <div class="q-pa-md q-gutter-md">
     <q-btn @click="retrievePolls()" no-caps>
       Retrieve polls
     </q-btn>
-    <q-list bordered separator>
-      <q-item v-for="poll in allPolls" :key="poll.whenCreated" clickable v-ripple>
-        <q-item-section>{{ poll.title }}</q-item-section>
-        <q-item-section>{{ poll.question }}</q-item-section>
-        <q-item-section>{{ poll.proposals.join(', ') }}</q-item-section>
-        <q-item-section>{{ poll.author }}</q-item-section>
-        <q-item-section>{{ poll.whenCreated }}</q-item-section>
-        <q-item-section>{{ poll.duration }}</q-item-section>
+    <q-list bordered class="rounded-borders">
+      <q-item-label header>Коли створено</q-item-label>
+
+      <q-item v-for="poll in allPolls" :key="poll.whenCreated">
+        <q-item-section avatar top>
+          <q-icon name="account_tree" color="black" />
+        </q-item-section>
+
+        <q-item-section top class="col-2 gt-sm">
+          <q-item-label class="q-mt-sm">
+            {{ String(poll.author.slice(0, 5) + '...' + poll.author.slice(-4)) }}
+          </q-item-label>
+        </q-item-section>
+
+        <q-item-section top>
+          <q-item-label lines="1">
+            <span class="text-weight-medium">
+              {{ poll.title }}
+            </span>
+          </q-item-label>
+          <q-item-label caption lines="1">
+            {{ poll.question }}
+          </q-item-label>
+          <q-item-label lines="1" class="q-mt-xs text-body2 text-weight-bold text-primary">
+            <span>{{ poll.duration }}</span>
+          </q-item-label>
+        </q-item-section>
+
+        <q-item-section top side>
+          <div class="text-grey-8 q-gutter-xs">
+            <q-btn round icon="ballot">
+              <q-tooltip>Проголосувати</q-tooltip>
+            </q-btn>
+          </div>
+        </q-item-section>
       </q-item>
+
     </q-list>
-  </q-page>
+  </div>
 </template>
 
 <script setup lang="ts">
