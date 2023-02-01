@@ -1,8 +1,14 @@
 <template>
   <div class="q-pa-md q-gutter-md">
     <q-btn @click="retrievePolls()" no-caps>
-      Retrieve polls
+      Оновити список голосувань
     </q-btn>
+
+    <transition
+      appear
+      enter-active-class="animated fadeIn"
+      leave-active-class="animated fadeOut"
+    >
     <q-list bordered separator class="rounded-borders">
 
       <q-item v-for="poll in allPolls" :key="poll.whenCreated">
@@ -19,7 +25,7 @@
 
         <q-item-section top class="col-2 gt-sm">
           <q-item-label class="q-mt-sm">
-            {{ date.formatDate(poll.whenCreated, 'D.MM.YYYYTHH:mm:ss') }}
+            {{ date.formatDate(poll.whenCreated, 'DD.MM.YYYYTHH:mm:ss') }}
             <q-tooltip delay="1500">Дата створення</q-tooltip>
           </q-item-label>
         </q-item-section>
@@ -51,6 +57,13 @@
       </q-item>
 
     </q-list>
+    </transition>
+    <q-inner-loading
+      :showing="!retrievingFinished"
+      color="primary"
+      label="Ініціалізація даних..."
+      label-class="text-teal"
+    />
   </div>
 </template>
 
@@ -72,12 +85,14 @@ interface Poll {
 const $q = useQuasar()
 const contractAddress = process.env.VUE_APP_BALLOT_CONTRACT
 const allPolls = ref<Poll[]>([])
+const retrievingFinished = ref<boolean>(true)
 
 const contractMutated: Ref<boolean> = inject('contractMutated') as Ref<boolean>
 
 watch(contractMutated, retrievePolls)
 
-async function retrievePolls () {
+function retrievePolls () {
+  retrievingFinished.value = false
   allPolls.value = []
   // @ts-expect-error Window.ethers not TS
   if (typeof window.ethereum !== 'undefined') {
@@ -88,8 +103,7 @@ async function retrievePolls () {
       abi,
       provider
     )
-    try {
-      const data = await contract.getAllPolls()
+    contract.getAllPolls().then((data: any) => {
       data.forEach((poll: any) => {
         allPolls.value.push({
           title: poll.title,
@@ -100,12 +114,14 @@ async function retrievePolls () {
           duration: poll.duration
         })
       })
-    } catch (error: any) {
+    }).catch((error: any) => {
       $q.notify({
         type: 'negative',
         message: 'Виникла помилка відображення списку голосувань: ' + error.message
       })
-    }
+    }).finally(() => {
+      retrievingFinished.value = true
+    })
   }
 }
 
