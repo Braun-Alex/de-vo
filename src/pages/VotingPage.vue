@@ -68,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, Ref, watch } from 'vue'
+import { ref, Ref} from 'vue'
 import { useQuasar, date } from 'quasar'
 import { ethers } from 'ethers'
 import { abi } from 'src/Ballot.json'
@@ -83,13 +83,9 @@ interface Poll {
 }
 
 const $q = useQuasar()
-const contractAddress = process.env.VUE_APP_BALLOT_CONTRACT
-const allPolls = ref<Poll[]>([])
-const retrievingFinished = ref<boolean>(true)
-
-const contractMutated: Ref<boolean> = inject('contractMutated') as Ref<boolean>
-
-watch(contractMutated, retrievePolls)
+const contractAddress: string | undefined = process.env.VUE_APP_BALLOT_CONTRACT
+const allPolls: Ref<Poll[]> = ref<Poll[]>([])
+const retrievingFinished: Ref<boolean> = ref<boolean>(true)
 
 function retrievePolls () {
   retrievingFinished.value = false

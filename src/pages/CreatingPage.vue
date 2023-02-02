@@ -6,6 +6,7 @@
       @reset="onReset"
       class="q-gutter-md text-center"
     >
+
       <q-input
         outlined
         v-model="title"
@@ -48,6 +49,7 @@
         multiple
         hide-dropdown-icon
         input-debounce="0"
+        lazy-rules
         @new-value="createProposal"
         :rules="[
           val => val && val.length > 0 || 'Список варіантей відповідей не може бути порожнім',
@@ -72,12 +74,15 @@
       />
 
       <q-toggle v-model="accept"
-                label="Я погоджуюся з тим, що голосування буде створено он-чейн" />
+                label="Я погоджуюся з тим, що голосування буде створено он-чейн"
+                unchecked-icon="clear" checked-icon="check" :color="accept ? 'green' : 'red'"
+                keep-color />
 
       <div>
-        <q-btn label="Створити голосування" type="submit" color="primary"/>
-        <q-btn label="Відізвати зміни" type="reset" color="primary" flat class="q-ml-sm" />
+        <q-btn push label="Створити голосування" type="submit" color="primary" no-caps />
+        <q-btn push label="Відкликати дані" type="reset" color="warning" class="q-ml-sm" no-caps />
       </div>
+
     </q-form>
 
   </div>
@@ -91,18 +96,18 @@ import { abi } from 'src/Ballot.json'
 const $q = useQuasar()
 const title: Ref<null> = ref(null)
 const question: Ref<null> = ref(null)
-const proposals: Ref<string[] | null> = ref(null)
+const proposals: Ref<null> = ref(null)
 const duration: Ref<null> = ref(null)
 const durationInSeconds: ComputedRef<number | null> = computed(() => {
   return duration.value === null ? null : 3600 * duration.value
 })
-const accept = ref(false)
-const walletConnected = inject<Ref<boolean>>('walletConnected') as Ref<boolean>
-const contractAddress = process.env.VUE_APP_BALLOT_CONTRACT
-const contractMutated = inject<Ref<boolean>>('contractMutated') as Ref<boolean>
+const accept: Ref<boolean> = ref(false)
+const walletConnected: Ref<boolean> = inject<Ref<boolean>>('walletConnected') as Ref<boolean>
+const contractAddress: string | undefined = process.env.VUE_APP_BALLOT_CONTRACT
+const contractMutated: Ref<boolean> = inject<Ref<boolean>>('contractMutated') as Ref<boolean>
 
 function onSubmit () {
-  if (accept.value !== true) {
+  if (!accept.value) {
     $q.notify({
       type: 'negative',
       message: 'Вам потрібно надати згоду'
@@ -113,75 +118,125 @@ function onSubmit () {
       message: 'Вам потрібно під\'єднати гаманець MetaMask для створення голосування он-чейн'
     })
   } else {
-    // @ts-expect-error Window.ethers not TS
-    if (typeof window.ethereum !== 'undefined') {
+    $q.dialog({
+      title: 'Підтвердження',
+      message: 'Ви впевнені, що хочете створити голосування?',
+      ok: {
+        glossy: true,
+        label: 'Так',
+        color: 'positive',
+        noCaps: true
+      },
+      cancel: {
+        glossy: true,
+        label: 'Ні',
+        color: 'negative',
+        noCaps: true
+      },
+      persistent: true
+    }).onOk(() => {
       // @ts-expect-error Window.ethers not TS
-      const provider = new ethers.providers.Web3Provider(window.ethereum)
-      const signer = provider.getSigner()
-      const contract = new ethers.Contract(
-        contractAddress as string,
-        abi,
-        signer
-      )
-      $q.loading.show({
-        spinner: QSpinnerGears,
-        message: 'Підписання транзакції...'
-      })
-      try {
-        contract.create(
-          title.value,
-          question.value,
-          proposals.value,
-          durationInSeconds.value).then((transaction: any) => {
-          $q.loading.hide()
-          $q.loading.show({
-            spinner: QSpinnerGears,
-            message: 'Обробка транзакції...'
-          })
-          transaction.wait().then(() => {
-            $q.notify({
-              type: 'positive',
-              icon: 'cloud_done',
-              message: 'Голосування було успішно створено он-чейн'
+      if (typeof window.ethereum !== 'undefined') {
+        // @ts-expect-error Window.ethers not TS
+        const provider = new ethers.providers.Web3Provider(window.ethereum)
+        const signer = provider.getSigner()
+        const contract = new ethers.Contract(
+          contractAddress as string,
+          abi,
+          signer
+        )
+        $q.loading.show({
+          spinner: QSpinnerGears,
+          message: 'Підписання транзакції...'
+        })
+        try {
+          contract.create(
+            title.value,
+            question.value,
+            proposals.value,
+            durationInSeconds.value).then((transaction: any) => {
+            $q.loading.hide()
+            $q.loading.show({
+              spinner: QSpinnerGears,
+              message: 'Обробка транзакції...'
             })
-            contractMutated.value = true
-            contractMutated.value = false
-          }).catch((error: any) => {
+            transaction.wait().then(() => {
+              $q.notify({
+                type: 'positive',
+                icon: 'cloud_done',
+                message: 'Голосування було успішно створено он-чейн'
+              })
+              contractMutated.value = true
+              contractMutated.value = false
+            }).catch((error: any) => {
+              $q.notify({
+                type: 'negative',
+                message: 'У процесі обробки транзакції виникла помилка: ' + error.message
+              })
+            }).finally(() => {
+              $q.loading.hide()
+            })
+          }).catch(() => {
+            $q.loading.hide()
             $q.notify({
               type: 'negative',
-              message: 'У процесі обробки транзакції виникла помилка: ' + error.message
+              message: 'Підписання транзакції було відхилено'
             })
-          }).finally(() => {
-            $q.loading.hide()
           })
-        }).catch(() => {
-          $q.loading.hide()
+        } catch (error: any) {
           $q.notify({
             type: 'negative',
-            message: 'Підписання транзакції було відхилено'
+            message: 'Виникла помилка у створенні голосування: ' + error.message
           })
-        })
-      } catch (error: any) {
+        }
+      } else {
         $q.notify({
           type: 'negative',
-          message: 'Виникла помилка у створенні голосування: ' + error.message
+          message: 'MetaMask не встановлено'
         })
       }
-    } else {
+    }).onCancel(() => {
       $q.notify({
         type: 'negative',
-        message: 'MetaMask не встановлено'
+        message: 'Створення голосування було відхилено'
       })
-    }
+    })
   }
 }
 
 function onReset () {
-  title.value = null
-  question.value = null
-  proposals.value = null
-  duration.value = null
-  accept.value = false
+  $q.dialog({
+    title: 'Підтвердження',
+    message: 'Ви впевнені, що хочете відкликати дані?',
+    ok: {
+      glossy: true,
+      label: 'Так',
+      color: 'positive',
+      noCaps: true
+    },
+    cancel: {
+      glossy: true,
+      label: 'Ні',
+      color: 'negative',
+      noCaps: true
+    },
+    persistent: true
+  }).onOk(() => {
+    title.value = null
+    question.value = null
+    proposals.value = null
+    duration.value = null
+    accept.value = false
+    $q.notify({
+      type: 'positive',
+      message: 'Дані було відкликано'
+    })
+  }).onCancel(() => {
+    $q.notify({
+      type: 'negative',
+      message: 'Відкликання даних було відхилено'
+    })
+  })
 }
 
 function createProposal (val: string, done: any) {

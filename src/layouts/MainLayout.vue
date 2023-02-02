@@ -88,6 +88,16 @@
     >
       <q-scroll-area class="fit">
         <q-list padding class="text-grey-8">
+
+          <q-item class="GNL__drawer-item" v-ripple clickable to="/voting">
+            <q-item-section avatar>
+              <q-icon name="edit" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Проголосувати</q-item-label>
+            </q-item-section>
+          </q-item>
+
           <q-item class="GNL__drawer-item"
                   to="/creating"
                   v-ripple clickable>
@@ -96,15 +106,6 @@
             </q-item-section>
             <q-item-section>
               <q-item-label>Створити голосування</q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <q-item class="GNL__drawer-item" v-ripple clickable>
-            <q-item-section avatar>
-              <q-icon name="edit" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Проголосувати</q-item-label>
             </q-item-section>
           </q-item>
 
@@ -147,17 +148,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, provide } from 'vue'
+import { ref, provide, Ref } from 'vue'
 import { useQuasar, QSpinnerGears } from 'quasar'
 import { ethers } from 'ethers'
 const $q = useQuasar()
-const leftDrawerOpen = ref<boolean>(false)
-const search = ref<string>('')
-const pollIdentifier = ref<string>('')
-const authorAddress = ref<string>('')
-const walletConnected = ref<boolean>(false)
-const walletAddress = ref<string>('')
-const contractMutated = ref<boolean>(false)
+const leftDrawerOpen: Ref<boolean> = ref<boolean>(false)
+const search: Ref<string> = ref<string>('')
+const pollIdentifier: Ref<string> = ref<string>('')
+const authorAddress: Ref<string> = ref<string>('')
+const walletConnected: Ref<boolean> = ref<boolean>(false)
+const walletAddress: Ref<string> = ref<string>('')
+
 if ($q.localStorage.getItem('Wallet connected') != null) {
   walletConnected.value = $q.localStorage.getItem('Wallet connected') as boolean
 }
@@ -170,19 +171,18 @@ interface Link {
   text: string
 }
 
-const notations = ref<Array<Link>>(
+const notations: Ref<Link[]> = ref<Link[]>(
   [
     { icon: 'flag', text: 'Повідомити про порушення авторських прав' },
     { icon: 'account_tree', text: 'Про сайт' }
   ])
-const details = ref<Array<Link>>(
+const details: Ref<Link[]> = ref<Link[]>(
   [
     { icon: '', text: 'Зворотній зв\'язок' },
     { icon: 'open_in_new', text: 'Туторіал' }
   ])
 
 provide('walletConnected', walletConnected)
-provide('contractMutated', contractMutated)
 
 function onClear () {
   pollIdentifier.value = ''
