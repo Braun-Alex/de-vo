@@ -1,6 +1,6 @@
 <template>
   <div class="q-pa-md q-gutter-md">
-    <q-btn @click="retrievePolls()" no-caps>
+    <q-btn :loading="!retrievingFinished" square color="secondary" glossy @click="retrievePolls()" no-caps>
       Оновити список голосувань
     </q-btn>
 
@@ -60,7 +60,7 @@
     </transition>
     <q-inner-loading
       :showing="!retrievingFinished"
-      color="primary"
+      color="teal"
       label="Ініціалізація даних..."
       label-class="text-teal"
     />

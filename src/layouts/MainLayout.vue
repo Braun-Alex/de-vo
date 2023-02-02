@@ -67,7 +67,7 @@
         <q-space />
 
         <div class="q-gutter-sm row items-center no-wrap">
-          <q-btn style="background: #FF0080; color: white"
+          <q-btn glossy style="background: #FF0080; color: white"
                  flat :label="walletConnected ?
                    String(walletAddress.slice(0, 5) + '...' + walletAddress.slice(-4))
                    : 'Під\'єднати гаманець MetaMask'"
