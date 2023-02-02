@@ -4,11 +4,12 @@ pragma solidity >=0.7.0;
 
 contract Ballot {
     struct Poll {
+        uint id;
         string title;
         string question;
         string[] proposals;
         address author;
-        uint256 whenCreated;
+        uint whenCreated;
         uint duration;
     }
 
@@ -28,20 +29,21 @@ contract Ballot {
     string[] memory _proposals, uint _duration) public {
         address _author = msg.sender;
         uint _whenCreated = block.timestamp;
-        uint pollId = allPolls.length;
-        pollsPerAddress[_author].push(pollId);
+        uint _pollId = allPolls.length;
+        pollsPerAddress[_author].push(_pollId);
         votesPerPoll.push();
         for (uint i = 0; i < _proposals.length; i++) {
-            votesPerPoll[pollId].push();
+            votesPerPoll[_pollId].push();
         }
         allPolls.push(Poll(
+            _pollId,
             _title, 
             _question, 
             _proposals, 
             _author, 
             _whenCreated, 
             _duration));
-        emit Create(_author, _whenCreated, allPolls[pollId]);
+        emit Create(_author, _whenCreated, allPolls[_pollId]);
     }
 
     function vote(uint _pollId, string memory _pollProposal) public {
@@ -49,7 +51,7 @@ contract Ballot {
         uint currentTimestamp = block.timestamp;
         require(currentTimestamp >= poll.whenCreated + poll.duration, "Poll has been finished!");
         address voter = msg.sender;
-        require(!hasVoted[voter][_pollId], "Voter has already voted");
+        require(!hasVoted[voter][_pollId], "Voter has already voted!");
         string[] memory proposals = poll.proposals;
         bool doesExistProposal = false;
         for (uint i = 0; i < proposals.length; i++) {
@@ -59,21 +61,13 @@ contract Ballot {
                 votesPerPoll[_pollId][i] += 1;
             }
         }
-        require(doesExistProposal, "Such proposal does not exist");
+        require(doesExistProposal, "Such proposal does not exist!");
         hasVoted[voter][_pollId] = true;
         emit Vote(voter, currentTimestamp, _pollProposal);
     }
 
-    function getPoll(uint _pollId) public view returns (Poll memory) {
-        return allPolls[_pollId];
-    }
-
     function getAllPolls() public view returns (Poll[] memory) {
         return allPolls;
-    }
-
-    function getTotalPolls() public view returns (uint) {
-        return allPolls.length;
     }
 
     function getWinningProposal(uint _pollId) public view returns (string memory) {
