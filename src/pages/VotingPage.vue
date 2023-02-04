@@ -50,7 +50,7 @@
         <q-item-section top side>
           <div class="text-grey-8 q-gutter-xs">
             <q-btn round color="teal" :icon="poll.finished ? 'verified' : 'ballot'"
-                   @click="poll.finished ? getResult() : vote(poll)">
+                   @click="poll.finished ? getResult(poll) : vote(poll)">
               <q-tooltip>{{ poll.finished ? 'Результати' : 'Проголосувати' }}</q-tooltip>
             </q-btn>
           </div>
@@ -77,7 +77,8 @@ import { abi } from 'src/Ballot.json'
 interface Item {
   label: string,
   value: string,
-  color: string
+  color: string,
+  disable: boolean
 }
 
 interface Poll {
@@ -130,6 +131,11 @@ function retrievePolls () {
     }).finally(() => {
       retrievingFinished.value = true
     })
+  } else {
+    $q.notify({
+      type: 'negative',
+      message: 'MetaMask не встановлено'
+    })
   }
 }
 
@@ -142,7 +148,7 @@ function vote (poll: Poll) {
   } else {
     const pollItems: Item[] = []
     poll.proposals.forEach((proposal: string) => {
-      pollItems.push({ label: proposal, value: proposal, color: 'teal' })
+      pollItems.push({ label: proposal, value: proposal, color: 'teal', disable: false })
     })
     $q.dialog({
       title: '#' + poll.id + ': ' + poll.title,
@@ -257,6 +263,59 @@ function vote (poll: Poll) {
           message: 'Голосування було відхилено'
         })
       })
+    })
+  }
+}
+
+function getResult (poll: Poll) {
+  // @ts-expect-error Window.ethers not TS
+  if (typeof window.ethereum !== 'undefined') {
+    // @ts-expect-error Window.ethers not TS
+    const provider = new ethers.providers.Web3Provider(window.ethereum)
+    const contract = new ethers.Contract(
+      contractAddress as string,
+      abi,
+      provider
+    )
+    contract.getWinningProposal(poll.id).then((result: any) => {
+      const pollItems: Item[] = []
+      poll.proposals.forEach((proposal: string) => {
+        pollItems.push({ label: proposal, value: proposal, color: 'teal', disable: true })
+      })
+      $q.dialog({
+        title: '#' + poll.id + ': ' + poll.title + '. Результат',
+        message: poll.question,
+        options: {
+          type: 'toggle',
+          model: result,
+          items: pollItems
+        },
+        ok: {
+          glossy: true,
+          label: 'Зрозуміло',
+          color: 'info',
+          noCaps: true
+        },
+        cancel: false
+      })
+    }).catch((error: any) => {
+      const reason: string = error.message
+      if (reason.lastIndexOf('Ballot has no winning proposal') !== -1) {
+        $q.notify({
+          type: 'negative',
+          message: 'На жаль, деякі варіанти відповідей голосування містять однакову кількість голосів'
+        })
+      } else {
+        $q.notify({
+          type: 'negative',
+          message: 'Виникла помилка відображення результату голосування: ' + reason
+        })
+      }
+    })
+  } else {
+    $q.notify({
+      type: 'negative',
+      message: 'MetaMask не встановлено'
     })
   }
 }
