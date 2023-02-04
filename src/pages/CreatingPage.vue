@@ -104,7 +104,6 @@ const durationInSeconds: ComputedRef<number | null> = computed(() => {
 const accept: Ref<boolean> = ref(false)
 const walletConnected: Ref<boolean> = inject<Ref<boolean>>('walletConnected') as Ref<boolean>
 const contractAddress: string | undefined = process.env.VUE_APP_BALLOT_CONTRACT
-const contractMutated: Ref<boolean> = inject<Ref<boolean>>('contractMutated') as Ref<boolean>
 
 function onSubmit () {
   if (!accept.value) {
@@ -166,8 +165,6 @@ function onSubmit () {
                 icon: 'cloud_done',
                 message: 'Голосування було успішно створено он-чейн'
               })
-              contractMutated.value = true
-              contractMutated.value = false
             }).catch((error: any) => {
               $q.notify({
                 type: 'negative',

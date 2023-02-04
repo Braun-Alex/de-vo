@@ -216,7 +216,7 @@ function connectWallet () {
     }).catch(() => {
       $q.notify({
         type: 'negative',
-        message: 'Запит на під\'єднання відхилено'
+        message: 'Запит на під\'єднання було відхилено'
       })
     }).finally(() => {
       $q.loading.hide()
