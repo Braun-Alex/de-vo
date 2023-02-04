@@ -43,19 +43,19 @@
                       Ідентифікатор голосування
                     </div>
                     <div class="col-9 q-pl-md">
-                      <q-input dense :disable="authorAddress !== ''" v-model="pollIdentifier" />
+                      <q-input outlined dense :disable="authorAddress !== ''" v-model="pollIdentifier" />
                     </div>
 
                     <div class="col-3 text-subtitle2 text-grey">
                       EVM-адреса автора
                     </div>
                     <div class="col-9 q-pl-md">
-                      <q-input dense :disable="pollIdentifier !== ''" v-model="authorAddress" />
+                      <q-input outlined dense :disable="pollIdentifier !== ''" v-model="authorAddress" />
                     </div>
 
                     <div class="col-12 q-pt-lg row justify-end">
-                      <q-btn flat dense no-caps color="grey-7" size="md" style="min-width: 68px;" label="Search" v-close-popup />
-                      <q-btn flat dense no-caps color="grey-7" size="md" style="min-width: 68px;" @click="onClear" label="Clear" v-close-popup />
+                      <q-btn flat dense no-caps color="grey-7" size="md" style="min-width: 68px;" label="Знайти" v-close-popup />
+                      <q-btn flat dense no-caps color="grey-7" size="md" style="min-width: 68px;" @click="onClear" label="Відкликати" v-close-popup />
                     </div>
                   </div>
                 </div>

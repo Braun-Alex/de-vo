@@ -332,12 +332,11 @@ function getPollTime (whenCreated: number, duration: number) {
   const dateOfCreating = new Date(whenCreated)
   const dateOfClosing = date.addToDate(dateOfCreating, { seconds: duration })
   const currentDate = Date.now()
-  let answer = 'Триватиме ще '
+  let answer = 'Триватиме ще більше '
   const differenceInHours = date.getDateDiff(dateOfClosing, currentDate, 'hours') - 1
   if (differenceInHours > 0) {
-    const time = ' більше ' + differenceInHours
-    answer += differenceInHours % 10 === 1 ? time +
-      ' години' : time + ' годин'
+    answer += differenceInHours % 10 === 1 ? differenceInHours +
+      ' години' : differenceInHours + ' годин'
   } else {
     const differenceInMinutes = date.getDateDiff(dateOfClosing, currentDate, 'minutes') - 1
     if (differenceInMinutes > 0) {
