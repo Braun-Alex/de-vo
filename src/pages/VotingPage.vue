@@ -49,7 +49,8 @@
 
         <q-item-section top side>
           <div class="text-grey-8 q-gutter-xs">
-            <q-btn round color="teal" :icon="poll.finished ? 'verified' : 'ballot'" @click="vote(poll)">
+            <q-btn round color="teal" :icon="poll.finished ? 'verified' : 'ballot'"
+                   @click="poll.finished ? getResult() : vote(poll)">
               <q-tooltip>{{ poll.finished ? 'Результати' : 'Проголосувати' }}</q-tooltip>
             </q-btn>
           </div>
@@ -69,7 +70,7 @@
 
 <script setup lang="ts">
 import { inject, ref, Ref } from 'vue'
-import {useQuasar, date, QSpinnerGears} from 'quasar'
+import { useQuasar, date, QSpinnerGears } from 'quasar'
 import { ethers } from 'ethers'
 import { abi } from 'src/Ballot.json'
 
@@ -133,7 +134,7 @@ function retrievePolls () {
 }
 
 function vote (poll: Poll) {
-  if (walletConnected.value) {
+  if (!walletConnected.value) {
     $q.notify({
       type: 'negative',
       message: 'Вам потрібно під\'єднати гаманець MetaMask для голосування он-чейн'
@@ -218,12 +219,25 @@ function vote (poll: Poll) {
               }).finally(() => {
                 $q.loading.hide()
               })
-            }).catch(() => {
+            }).catch((error: any) => {
               $q.loading.hide()
-              $q.notify({
-                type: 'negative',
-                message: 'Підписання транзакції було відхилено'
-              })
+              const reason: string = error.message
+              if (reason.lastIndexOf('Poll has been finished!') !== -1) {
+                $q.notify({
+                  type: 'negative',
+                  message: 'Голосування вже завершено'
+                })
+              } else if (reason.lastIndexOf('Voter has already voted!') !== -1) {
+                $q.notify({
+                  type: 'negative',
+                  message: 'Ви вже проголосували у даному голосуванні'
+                })
+              } else {
+                $q.notify({
+                  type: 'negative',
+                  message: 'Підписання транзакції було відхилено'
+                })
+              }
             })
           } catch (error: any) {
             $q.notify({
