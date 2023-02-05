@@ -40,7 +40,7 @@
               transition-hide="jump-up">
                 <div class="q-pa-md" style="width: 400px">
                   <div class="text-body2 text-grey q-mb-md">
-                    Введіть ідентифікатор голосування або EVM-адресу автора
+                    Знайти за ідентифікатором або EVM-адресою
                   </div>
 
                   <div class="row items-center">
@@ -59,9 +59,9 @@
                     </div>
 
                     <div class="col-12 q-pt-lg row justify-end">
-                      <q-btn flat dense no-caps color="grey-7" size="md" style="min-width: 68px;"
+                      <q-btn flat dense no-caps color="primary" size="md" style="min-width: 68px;"
                              @click="searchPressed = !searchPressed" label="Знайти" v-close-popup />
-                      <q-btn flat dense no-caps color="grey-7" size="md" style="min-width: 68px;"
+                      <q-btn flat dense no-caps color="warning" size="md" style="min-width: 68px;"
                              @click="onClear" label="Відкликати" v-close-popup />
                     </div>
                   </div>
