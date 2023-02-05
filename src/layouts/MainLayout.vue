@@ -19,7 +19,9 @@
 
         <q-space />
 
-        <q-input class="GNL__toolbar-input" outlined dense v-model="search" color="bg-grey-7 shadow-1" placeholder="Знайти голосування">
+        <q-input class="GNL__toolbar-input" outlined dense v-model="search"
+                 :readonly="pollIdentifier !== '' || authorAddress !== ''"
+                 color="bg-grey-7 shadow-1" placeholder="Знайти голосування">
           <template v-slot:prepend>
             <q-icon v-if="search === ''" name="search" />
             <q-icon v-else name="clear" class="cursor-pointer" @click="search = ''" />
@@ -43,14 +45,14 @@
                       Ідентифікатор голосування
                     </div>
                     <div class="col-9 q-pl-md">
-                      <q-input outlined dense :disable="authorAddress !== ''" v-model="pollIdentifier" />
+                      <q-input outlined dense :disable="search !== '' || authorAddress !== ''" v-model="pollIdentifier" />
                     </div>
 
                     <div class="col-3 text-subtitle2 text-grey">
                       EVM-адреса автора
                     </div>
                     <div class="col-9 q-pl-md">
-                      <q-input outlined dense :disable="pollIdentifier !== ''" v-model="authorAddress" />
+                      <q-input outlined dense :disable="search !== '' || pollIdentifier !== ''" v-model="authorAddress" />
                     </div>
 
                     <div class="col-12 q-pt-lg row justify-end">
@@ -183,6 +185,9 @@ const details: Ref<Link[]> = ref<Link[]>(
   ])
 
 provide('walletConnected', walletConnected)
+provide('search', search)
+provide('pollIdentifier', pollIdentifier)
+provide('authorAddress', authorAddress)
 
 function onClear () {
   pollIdentifier.value = ''

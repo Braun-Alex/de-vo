@@ -79,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, ref, Ref } from 'vue'
+import { inject, ref, Ref, watch } from 'vue'
 import { useQuasar, date, QSpinnerGears } from 'quasar'
 import { ethers } from 'ethers'
 import { abi } from 'src/Ballot.json'
@@ -106,8 +106,57 @@ interface Poll {
 const $q = useQuasar()
 const contractAddress: string | undefined = process.env.VUE_APP_BALLOT_CONTRACT
 const allPolls: Ref<Poll[]> = ref<Poll[]>([])
+const watchPolls: Ref<Poll[]> = ref<Poll[]>([])
 const retrievingFinished: Ref<boolean> = ref<boolean>(true)
 const walletConnected: Ref<boolean> = inject<Ref<boolean>>('walletConnected') as Ref<boolean>
+const search: Ref<string> = inject<Ref<string>>('search') as Ref<string>
+const pollIdentifier: Ref<string> = inject<Ref<string>>('pollIdentifier') as Ref<string>
+const authorAddress: Ref<string> = inject<Ref<string>>('authorAddress') as Ref<string>
+
+watch(search, () => {
+  setTimeout(() => {
+    retrievingFinished.value = true
+  }, 1000)
+  retrievingFinished.value = false
+  if (search.value === '') {
+    allPolls.value = watchPolls.value
+  } else {
+    allPolls.value = watchPolls.value.filter((poll: Poll) => {
+      return poll.id.toString(10) === search.value ||
+        poll.author === search.value
+    })
+  }
+  retrievingFinished.value = true
+})
+
+watch(pollIdentifier, () => {
+  setTimeout(() => {
+    retrievingFinished.value = true
+  }, 1000)
+  retrievingFinished.value = false
+  if (pollIdentifier.value === '') {
+    allPolls.value = watchPolls.value
+  } else {
+    allPolls.value = watchPolls.value.filter((poll: Poll) => {
+      return poll.id.toString(10) === pollIdentifier.value
+    })
+  }
+})
+
+watch(authorAddress, () => {
+  setTimeout(() => {
+    retrievingFinished.value = true
+  }, 1000)
+  retrievingFinished.value = false
+  if (authorAddress.value === '') {
+    allPolls.value = watchPolls.value
+  } else {
+    allPolls.value = watchPolls.value.filter((poll: Poll) => {
+      return poll.author === authorAddress.value
+    })
+  }
+  retrievingFinished.value = true
+})
 
 function retrievePolls () {
   retrievingFinished.value = false
@@ -135,6 +184,7 @@ function retrievePolls () {
           finished: isFinished(poll.whenCreated * 1000, poll.duration)
         })
       })
+      watchPolls.value = allPolls.value
     }).catch((error: any) => {
       $q.notify({
         type: 'negative',
