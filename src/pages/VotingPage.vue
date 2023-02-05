@@ -47,10 +47,20 @@
           </q-item-label>
         </q-item-section>
 
+        <q-item-section center>
+          <q-item-label lines="1">
+            <span class="text-weight-medium">
+              {{ poll.countOfVoters % 10 === 1 ? poll.countOfVoters +
+              ' учасник' : poll.countOfVoters + ' учасників' }}
+              <q-tooltip delay="1500">Кількість учасників</q-tooltip>
+            </span>
+          </q-item-label>
+        </q-item-section>
+
         <q-item-section top side>
           <div class="text-grey-8 q-gutter-xs">
             <q-btn round color="teal" :icon="poll.finished ? 'verified' : 'ballot'"
-                   @click="poll.finished ? getResult(poll) : vote(poll)">
+                   @click="poll.finished ? getResults(poll) : vote(poll)">
               <q-tooltip>{{ poll.finished ? 'Результати' : 'Проголосувати' }}</q-tooltip>
             </q-btn>
           </div>
@@ -89,6 +99,7 @@ interface Poll {
   author: string,
   whenCreated: number,
   duration: number,
+  countOfVoters: number,
   finished: boolean
 }
 
@@ -120,6 +131,7 @@ function retrievePolls () {
           author: poll.author,
           whenCreated: poll.whenCreated * 1000,
           duration: poll.duration,
+          countOfVoters: poll.countOfVoters,
           finished: isFinished(poll.whenCreated * 1000, poll.duration)
         })
       })
@@ -267,7 +279,7 @@ function vote (poll: Poll) {
   }
 }
 
-function getResult (poll: Poll) {
+function getResults (poll: Poll) {
   // @ts-expect-error Window.ethers not TS
   if (typeof window.ethereum !== 'undefined') {
     // @ts-expect-error Window.ethers not TS
@@ -277,17 +289,26 @@ function getResult (poll: Poll) {
       abi,
       provider
     )
-    contract.getWinningProposal(poll.id).then((result: any) => {
+    contract.getResults(poll.id).then((results: number[]) => {
       const pollItems: Item[] = []
-      poll.proposals.forEach((proposal: string) => {
-        pollItems.push({ label: proposal, value: proposal, color: 'teal', disable: true })
+      poll.proposals.forEach((proposal: string, index: number) => {
+        const choice: string = results[index] % 10 === 1 ? 'голос' : (
+          results[index] % 10 >= 5 ? 'голоси' : 'голосів'
+        )
+        pollItems.push(
+          {
+            label: "Варіант " + "\"" + proposal + "\" набрав " + results[index] + " " + choice,
+            value: proposal,
+            color: 'teal',
+            disable: true
+          })
       })
       $q.dialog({
-        title: '#' + poll.id + ': ' + poll.title + '. Результат',
-        message: poll.question,
+        title: '#' + poll.id + ': ' + poll.title + '. Результати',
+        message: "Запитання було наступним: " + "\"" + poll.question + "\". Голоси розподілилися таким чином:",
         options: {
           type: 'toggle',
-          model: result,
+          model: poll.proposals[0],
           items: pollItems
         },
         ok: {
@@ -300,10 +321,10 @@ function getResult (poll: Poll) {
       })
     }).catch((error: any) => {
       const reason: string = error.message
-      if (reason.lastIndexOf('Ballot has no winning proposal') !== -1) {
+      if (reason.lastIndexOf('Poll has not been finished yet!') !== -1) {
         $q.notify({
           type: 'negative',
-          message: 'На жаль, деякі варіанти відповідей голосування містять однакову кількість голосів'
+          message: 'Голосування ще триває'
         })
       } else {
         $q.notify({
@@ -341,11 +362,11 @@ function getPollTime (whenCreated: number, duration: number) {
     const differenceInMinutes = date.getDateDiff(dateOfClosing, currentDate, 'minutes') - 1
     if (differenceInMinutes > 0) {
       answer += differenceInHours % 10 === 1 ? differenceInMinutes +
-        ' хвилину' : differenceInMinutes + ' хвилин'
+        ' хвилини' : differenceInMinutes + ' хвилин'
     } else {
       const differenceInSeconds = date.getDateDiff(dateOfClosing, currentDate, 'seconds') - 1
       answer += differenceInSeconds % 10 === 1 ? differenceInSeconds +
-        ' секунду' : differenceInSeconds + ' секунд'
+        ' секунди' : differenceInSeconds + ' секунд'
     }
   }
   return answer
