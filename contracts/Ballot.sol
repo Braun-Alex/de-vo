@@ -10,6 +10,7 @@ contract Ballot {
         address author;
         uint whenCreated;
         uint duration;
+        uint countOfVoters;
     }
 
     Poll[] allPolls;
@@ -38,7 +39,8 @@ contract Ballot {
             _proposals, 
             _author, 
             _whenCreated, 
-            _duration));
+            _duration,
+            0));
         emit Create(_author, _whenCreated, allPolls[pollId]);
     }
 
@@ -59,6 +61,7 @@ contract Ballot {
         }
         require(doesExistProposal, "Such proposal does not exist!");
         hasVoted[voter][_pollId] = true;
+        allPolls[_pollId].countOfVoters += 1;
         emit Vote(voter, currentTimestamp, _pollProposal);
     }
 
@@ -66,20 +69,9 @@ contract Ballot {
         return allPolls;
     }
 
-    function getWinningProposal(uint _pollId) public view returns (string memory) {
+    function getResults(uint _pollId) public view returns (uint[] memory) {
         Poll memory poll = allPolls[_pollId];
         require(block.timestamp >= poll.whenCreated + poll.duration, "Poll has not been finished yet!");
-        uint[] memory votes = votesPerPoll[_pollId];
-        uint winningProposalIndex = 0;
-        uint maxCount = votes[0];
-        for (uint i = 1; i < votes.length; i++) {
-            if (votes[i] == maxCount) {
-                revert("Ballot has no winning proposal!");
-            } else if (votes[i] > maxCount) {
-                maxCount = votes[i];
-                winningProposalIndex = i;
-            }
-        }
-        return allPolls[_pollId].proposals[winningProposalIndex];
+        return votesPerPoll[_pollId];
     }
 }
