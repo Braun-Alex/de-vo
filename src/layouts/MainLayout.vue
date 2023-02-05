@@ -21,7 +21,8 @@
 
         <q-input class="GNL__toolbar-input" outlined dense v-model="search"
                  :readonly="pollIdentifier !== '' || authorAddress !== ''"
-                 color="bg-grey-7 shadow-1" placeholder="Знайти голосування">
+                 color="teal" @keyup.enter="searchPressed = !searchPressed"
+                 placeholder="Знайти за назвою або запитанням">
           <template v-slot:prepend>
             <q-icon v-if="search === ''" name="search" />
             <q-icon v-else name="clear" class="cursor-pointer" @click="search = ''" />
@@ -34,7 +35,9 @@
               aria-label="Menu"
               icon="arrow_drop_down"
             >
-              <q-menu anchor="bottom end" self="top end">
+              <q-menu anchor="bottom end" self="top end"
+              transition-show="jump-down"
+              transition-hide="jump-up">
                 <div class="q-pa-md" style="width: 400px">
                   <div class="text-body2 text-grey q-mb-md">
                     Введіть ідентифікатор голосування або EVM-адресу автора
@@ -56,8 +59,10 @@
                     </div>
 
                     <div class="col-12 q-pt-lg row justify-end">
-                      <q-btn flat dense no-caps color="grey-7" size="md" style="min-width: 68px;" label="Знайти" v-close-popup />
-                      <q-btn flat dense no-caps color="grey-7" size="md" style="min-width: 68px;" @click="onClear" label="Відкликати" v-close-popup />
+                      <q-btn flat dense no-caps color="grey-7" size="md" style="min-width: 68px;"
+                             @click="searchPressed = !searchPressed" label="Знайти" v-close-popup />
+                      <q-btn flat dense no-caps color="grey-7" size="md" style="min-width: 68px;"
+                             @click="onClear" label="Відкликати" v-close-popup />
                     </div>
                   </div>
                 </div>
@@ -160,6 +165,7 @@ const pollIdentifier: Ref<string> = ref<string>('')
 const authorAddress: Ref<string> = ref<string>('')
 const walletConnected: Ref<boolean> = ref<boolean>(false)
 const walletAddress: Ref<string> = ref<string>('')
+const searchPressed: Ref<boolean> = ref<boolean>(false)
 
 if ($q.localStorage.getItem('Wallet connected') != null) {
   walletConnected.value = $q.localStorage.getItem('Wallet connected') as boolean
@@ -188,11 +194,14 @@ provide('walletConnected', walletConnected)
 provide('search', search)
 provide('pollIdentifier', pollIdentifier)
 provide('authorAddress', authorAddress)
+provide('searchPressed', searchPressed)
 
 function onClear () {
+  search.value = ''
   pollIdentifier.value = ''
   authorAddress.value = ''
 }
+
 function toggleLeftDrawer () {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }

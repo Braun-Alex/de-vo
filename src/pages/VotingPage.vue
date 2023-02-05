@@ -112,51 +112,39 @@ const walletConnected: Ref<boolean> = inject<Ref<boolean>>('walletConnected') as
 const search: Ref<string> = inject<Ref<string>>('search') as Ref<string>
 const pollIdentifier: Ref<string> = inject<Ref<string>>('pollIdentifier') as Ref<string>
 const authorAddress: Ref<string> = inject<Ref<string>>('authorAddress') as Ref<string>
+const searchPressed: Ref<boolean> = inject<Ref<boolean>>('searchPressed') as Ref<boolean>
 
-watch(search, () => {
-  setTimeout(() => {
-    retrievingFinished.value = true
-  }, 1000)
-  retrievingFinished.value = false
-  if (search.value === '') {
-    allPolls.value = watchPolls.value
+watch(searchPressed, () => {
+  if (search.value !== '') {
+    searchPoll(search.value, 'combined')
+  } else if (pollIdentifier.value !== '') {
+    searchPoll(pollIdentifier.value, 'id')
+  } else if (authorAddress.value !== '') {
+    searchPoll(authorAddress.value, 'address')
   } else {
-    allPolls.value = watchPolls.value.filter((poll: Poll) => {
-      return poll.id.toString(10) === search.value ||
-        poll.author === search.value
-    })
+    allPolls.value = watchPolls.value
   }
-  retrievingFinished.value = true
 })
 
-watch(pollIdentifier, () => {
-  setTimeout(() => {
-    retrievingFinished.value = true
-  }, 1000)
+function searchPoll (searchData: string, searchType: string) {
   retrievingFinished.value = false
-  if (pollIdentifier.value === '') {
-    allPolls.value = watchPolls.value
-  } else {
+  if (searchType === 'combined') {
+    const searchValue: string = search.value.toLowerCase()
+    allPolls.value = watchPolls.value.filter((poll: Poll) => {
+      return poll.title.toLowerCase().lastIndexOf(searchValue) !== -1 ||
+        poll.question.toLowerCase().lastIndexOf(searchValue) !== -1
+    })
+  } else if (searchType === 'id') {
     allPolls.value = watchPolls.value.filter((poll: Poll) => {
       return poll.id.toString(10) === pollIdentifier.value
     })
-  }
-})
-
-watch(authorAddress, () => {
-  setTimeout(() => {
-    retrievingFinished.value = true
-  }, 1000)
-  retrievingFinished.value = false
-  if (authorAddress.value === '') {
-    allPolls.value = watchPolls.value
-  } else {
+  } else if (searchType === 'address') {
     allPolls.value = watchPolls.value.filter((poll: Poll) => {
       return poll.author === authorAddress.value
     })
   }
   retrievingFinished.value = true
-})
+}
 
 function retrievePolls () {
   retrievingFinished.value = false
