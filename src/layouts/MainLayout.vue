@@ -91,12 +91,12 @@
       show-if-above
       bordered
       class="bg-white"
-      :width="280"
+      width="280"
     >
       <q-scroll-area class="fit">
         <q-list padding class="text-grey-8">
 
-          <q-item class="GNL__drawer-item" v-ripple clickable to="/voting">
+          <q-item class="GNL__drawer-item" to="/voting" v-ripple clickable>
             <q-item-section avatar>
               <q-icon name="edit" />
             </q-item-section>
@@ -105,9 +105,9 @@
             </q-item-section>
           </q-item>
 
-          <q-item class="GNL__drawer-item"
-                  to="/creating"
-                  v-ripple clickable>
+          <q-separator inset class="q-my-sm" />
+
+          <q-item class="GNL__drawer-item" to="/creating" v-ripple clickable>
             <q-item-section avatar>
               <q-icon name="add_circle" />
             </q-item-section>
@@ -118,32 +118,15 @@
 
           <q-separator inset class="q-my-sm" />
 
-          <q-item class="GNL__drawer-item" v-ripple v-for="link in notations" :key="link.text" clickable>
+          <q-item class="GNL__drawer-item" v-ripple clickable>
             <q-item-section avatar>
-              <q-icon :name="link.icon" />
+              <q-icon name="preview" />
             </q-item-section>
             <q-item-section>
-              <q-item-label>{{ link.text }}</q-item-label>
+              <q-item-label>На головну</q-item-label>
             </q-item-section>
           </q-item>
 
-          <q-separator inset class="q-my-sm" />
-
-          <q-item class="GNL__drawer-item" v-ripple v-for="link in details" :key="link.text" clickable>
-            <q-item-section>
-              <q-item-label>{{ link.text }} <q-icon v-if="link.icon" :name="link.icon" /></q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <div class="q-mt-md">
-            <div class="flex flex-center q-gutter-xs">
-              <a class="GNL__drawer-footer-link" href="javascript:void(0)" aria-label="Privacy">Політика конфіденційності</a>
-              <span> · </span>
-              <a class="GNL__drawer-footer-link" href="javascript:void(0)" aria-label="Terms">Положення використання</a>
-              <span> · </span>
-              <a class="GNL__drawer-footer-link" href="javascript:void(0)" aria-label="About">Про автора</a>
-            </div>
-          </div>
         </q-list>
       </q-scroll-area>
     </q-drawer>
@@ -173,22 +156,6 @@ if ($q.localStorage.getItem('Wallet connected') != null) {
 if ($q.localStorage.getItem('Wallet address') != null) {
   walletAddress.value = $q.localStorage.getItem('Wallet address') as string
 }
-
-interface Link {
-  icon: string,
-  text: string
-}
-
-const notations: Ref<Link[]> = ref<Link[]>(
-  [
-    { icon: 'flag', text: 'Повідомити про порушення авторських прав' },
-    { icon: 'account_tree', text: 'Про сайт' }
-  ])
-const details: Ref<Link[]> = ref<Link[]>(
-  [
-    { icon: '', text: 'Зворотній зв\'язок' },
-    { icon: 'open_in_new', text: 'Туторіал' }
-  ])
 
 provide('walletConnected', walletConnected)
 provide('search', search)
