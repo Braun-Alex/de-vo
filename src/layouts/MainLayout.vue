@@ -118,7 +118,7 @@
 
           <q-separator inset class="q-my-sm" />
 
-          <q-item class="GNL__drawer-item" v-ripple clickable>
+          <q-item class="GNL__drawer-item" to="/" v-ripple clickable>
             <q-item-section avatar>
               <q-icon name="preview" />
             </q-item-section>
