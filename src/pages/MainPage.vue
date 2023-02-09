@@ -1,16 +1,25 @@
 <template>
   <div class="q-pa-md">
+    <div class="text-h5 text-center q-gutter-md" style="opacity:.3">
+      <q-toggle v-model="isVisible"
+      :label="isVisible ? 'Пояснення надано. Якщо зрозуміло, то ще раз перетягніть мене' :
+      'Вітання! Якщо треба пояснення, то перетягніть мене'" class="q-mb-md"
+      unchecked-icon="clear" checked-icon="check" :color="isVisible ? 'green' : 'red'"
+      keep-color />
+    </div>
+  <q-slide-transition>
+    <div v-show="isVisible">
     <q-card>
-  <q-tabs
+      <q-tabs
     v-model="tip"
     indicator-color="transparent"
     active-color="white"
     class="bg-teal text-grey-5 shadow-2"
     align="justify"
   >
-    <q-tab name="howToVote" icon="edit" label="Як проголосовути" no-caps />
-    <q-tab name="howToCreate" icon="add_circle" label="Як створити голосування" no-caps />
-  </q-tabs>
+        <q-tab name="howToVote" icon="edit" label="Як проголосовути" no-caps />
+        <q-tab name="howToCreate" icon="add_circle" label="Як створити голосування" no-caps />
+      </q-tabs>
       <q-separator />
       <q-tab-panels v-model="tip" animated>
         <q-tab-panel name="howToVote">
@@ -27,9 +36,9 @@
               color="teal"
               :done="votingStep > 1"
             >
-              Голосування он-чейн відбувається за допомогою смарт-контракту, який знаходиться
-              на EVM-сумісному Layer-2 блокчейні Polygon у мережі Mainnet. Вам необхідно
-              під'єднати Ваш гаманець MetaMask і обрати мережу Polygon Mainnet.
+              Голосування он-чейн відбувається безпосередньо за допомогою Вашої EVM-адреси. Для того, щоб
+              проголосувати он-чейн, Вам необхідно під'єднати гаманець MetaMask, який надасть
+              можливість підписувати Ваші дії від імені EVM-адреси, якою Ви володієте.
 
               <q-stepper-navigation>
                 <q-btn @click="votingStep = 2" push color="primary" label="Наступний крок" no-caps />
@@ -95,9 +104,9 @@
               active-icon="verified"
               color="teal"
             >
-              Після підтвердження Вами зробленого вибору Вам необхідно буде підписати транзакцію, яка
-              полягає у виконанні методу "Vote" смарт-контракту стосовно тих голосування і вибору у
-              ньому, які Ви обрали. Зверніть увагу, що Ви можете відхилити підписання транзакції.
+              Після підтвердження Вами зробленого вибору Вам необхідно буде надати цифровий підпис за
+              допомогою гаманця MetaMask. Зверніть увагу, що Ви можете відхилити надання цифрового
+              підпису.
 
               <q-stepper-navigation>
                 <q-btn @click="votingStep = 1" push color="primary" label="Пройти огляд ще раз" no-caps/>
@@ -121,9 +130,9 @@
               color="teal"
               :done="creatingStep > 1"
             >
-              Голосування он-чейн відбувається за допомогою смарт-контракту, який знаходиться
-              на EVM-сумісному Layer-2 блокчейні Polygon у мережі Mainnet. Вам необхідно
-              під'єднати Ваш гаманець MetaMask і обрати мережу Polygon Mainnet.
+              Голосування он-чейн відбувається безпосередньо за допомогою Вашої EVM-адреси. Для того, щоб
+              проголосувати он-чейн, Вам необхідно під'єднати гаманець MetaMask, який надасть
+              можливість підписувати Ваші дії від імені EVM-адреси, якою Ви володієте.
 
               <q-stepper-navigation>
                 <q-btn @click="creatingStep = 2" push color="primary" label="Наступний крок" no-caps />
@@ -190,9 +199,9 @@
               active-icon="lock_clock"
               color="teal"
             >
-              Після підтвердження Вами зробленого вибору Вам необхідно буде підписати транзакцію, яка
-              полягає у виконанні методу "Create" смарт-контракту стосовно даних голосування, які Ви
-              встановили. Зверніть увагу, що Ви можете відхилити підписання транзакції.
+              Після підтвердження Вами того, що Ви хочете створити голосування он-чейн, Вам необхідно
+              буде надати цифровий підпис за допомогою гаманця MetaMask. Зверніть увагу, що Ви можете
+              відхилити надання цифрового підпису.
 
               <q-stepper-navigation>
                 <q-btn @click="creatingStep = 1" push color="primary" label="Пройти огляд ще раз" no-caps/>
@@ -204,6 +213,8 @@
       </q-tab-panels>
     </q-card>
   </div>
+  </q-slide-transition>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -211,4 +222,5 @@ import { ref, Ref } from 'vue'
 const tip: Ref<string> = ref<string>('howToVote')
 const votingStep: Ref<number> = ref<number>(1)
 const creatingStep: Ref<number> = ref<number>(1)
+const isVisible: Ref<boolean> = ref<boolean>(false)
 </script>
