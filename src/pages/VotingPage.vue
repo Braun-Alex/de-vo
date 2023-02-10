@@ -51,7 +51,8 @@
           <q-item-label lines="1">
             <span class="text-weight-medium">
               {{ poll.countOfVoters % 10 === 1 ? poll.countOfVoters +
-              ' учасник' : poll.countOfVoters + ' учасників' }}
+              ' учасник' : (poll.countOfVoters % 10 <= 5 ? poll.countOfVoters +
+              ' учасники' : poll.countOfVoters + 'учасників') }}
               <q-tooltip delay="1500">Кількість учасників</q-tooltip>
             </span>
           </q-item-label>
@@ -331,7 +332,7 @@ function getResults (poll: Poll) {
       const pollItems: Item[] = []
       poll.proposals.forEach((proposal: string, index: number) => {
         const choice: string = results[index] % 10 === 1 ? 'голос' : (
-          results[index] % 10 >= 5 ? 'голоси' : 'голосів'
+          results[index] % 10 <= 5 ? 'голоси' : 'голосів'
         )
         pollItems.push(
           {
