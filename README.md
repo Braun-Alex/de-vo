@@ -1,13 +1,13 @@
-# Sample Hardhat Project
+# Ballot contract 
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+The ballot contract has been written in Solidity and deployed to Ethereum Goerli blockchain.
 
-Try running some of the following tasks:
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
-```
+## 🔗 Contract address
+
+[![ethereum](https://img.shields.io/badge/Contract_address-1DA1F2?style=for-the-badge&logo=ethereum&logoColor=white)](https://goerli.etherscan.io/address/0xf27b9c47892bd7ed6b9cd936bb3f8bac4de2292f)
+
+## Authors
+
+- [Alex Braun](https://github.com/Braun-Alex)
