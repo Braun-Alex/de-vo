@@ -179,4 +179,38 @@ describe("Ballot", function() {
       })
     })
   })
+
+  describe("Getting of results", function() {
+    async function providePoll() {
+      const [firstVoter, secondVoter, thirdVoter] = await ethers.getSigners();
+      const Ballot = await ethers.getContractFactory("Ballot");
+      const ballot = await Ballot.deploy();
+      const poll: Poll = {
+        title: "Choosing of cryptographic method",
+        question: "Which of cryptographic methods is better for using in decentralized voting?",
+        proposals: ["Homomorphic encryption", "Zero knowledge proofs", "Ring signatures"],
+        duration: 1000 * 60 * 60 * 24
+      }
+      await ballot.create(poll.title, poll.question, poll.proposals, poll.duration);
+      return { ballot, firstVoter, secondVoter, thirdVoter }
+    }
+
+    it("Contract reverts getting results on uncompleted poll", async function() {
+      const { ballot } = await loadFixture(providePoll);
+      await expect(ballot.getResults(0)).to.be.revertedWith("Poll has not been finished yet!");
+    })
+
+    it("Contract successfully returns results of completed poll", async function() {
+      const { ballot, firstVoter, secondVoter, thirdVoter } = await loadFixture(providePoll);
+      await ballot.connect(firstVoter).vote(0, "Homomorphic encryption");
+      await ballot.connect(secondVoter).vote(0, "Zero knowledge proofs");
+      await ballot.connect(thirdVoter).vote(0, "Ring signatures");
+      ballot.getAllPolls().then(async (allPolls) => {
+        await time.increase(allPolls[0].duration);
+        ballot.getResults(0).then((results) => {
+          expect(results).to.equal([1, 1, 1]);
+        })
+      })
+    })
+  })
 })
