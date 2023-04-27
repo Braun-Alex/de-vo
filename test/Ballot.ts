@@ -1,7 +1,7 @@
 import "hardhat";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomiclabs/hardhat-ethers";
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
@@ -123,6 +123,60 @@ describe("Ballot", function() {
             })
           }
       )
+    })
+  })
+
+  describe("Voting", function() {
+    async function createPollFixture() {
+      const poll: Poll = {
+        title: "Choosing of cryptographic method",
+        question: "Which of cryptographic methods is better for using in decentralized voting?",
+        proposals: ["Homomorphic encryption", "Zero knowledge proofs", "Ring signatures"],
+        duration: 1000 * 60 * 60 * 24
+      }
+      const { ballot } = await loadFixture(deployContractFixture);
+      await ballot.create(poll.title, poll.question, poll.proposals, poll.duration);
+      return ballot;
+    }
+
+    it("Contract reverts voting on non-existing polls", async function() {
+      const { ballot } = await loadFixture(deployContractFixture);
+      await expect(ballot.vote(0, "Coffee")).to.be.revertedWithPanic();
+      await expect(ballot.vote(3, "Orange")).to.be.revertedWithPanic();
+      await expect(ballot.vote(333, "Ring signatures")).to.be.revertedWithPanic();
+    })
+
+    it("Contract reverts voting on completed polls", async function() {
+      const ballot = await loadFixture(createPollFixture);
+      ballot.getAllPolls().then(async (allPolls) => {
+        await time.increase(allPolls[0].duration);
+        await expect(ballot.vote(0, "Ring signatures")
+        ).to.be.revertedWith("Poll has been finished!");
+      })
+    })
+
+    it("Contract reverts voting twice", async function() {
+      const ballot = await loadFixture(createPollFixture);
+      ballot.vote(0, "Ring signatures").then(async (callback) => {
+        expect(callback.not.to.be.reverted);
+        await expect(ballot.vote(0, "Ring signatures")
+        ).to.be.revertedWith("Voter has already voted!");
+      })
+    })
+
+    it("Contract reverts voting with non-existing proposal", async function() {
+      const ballot = await loadFixture(createPollFixture);
+      await expect(ballot.vote(0, "Orange")).to.be.revertedWith("Such proposal does not exist!");
+    })
+
+    it("Contract successfully counts vote in poll on-chain", async function() {
+      const ballot = await loadFixture(createPollFixture);
+      ballot.vote(0, "Ring signatures").then((callback) => {
+        expect(callback).to.emit(ballot, "Vote");
+        ballot.getAllPolls().then((allPolls) => {
+          expect(allPolls[0].countOfVoters).to.equal(1);
+        })
+      })
     })
   })
 })
