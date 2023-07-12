@@ -1,6 +1,6 @@
 # DeVo
 
-Decentralized Ethereum based application. Permits to create polls and vote on-chain via MetaMask.
+Decentralized Ethereum-based application. Permits to create polls and vote on-chain via MetaMask.
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
