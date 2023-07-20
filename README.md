@@ -1,33 +1,21 @@
-# DeVo (de-vo)
+# DeVo
 
-Decentralized Voting
+Decentralized Ethereum-based application. Permits to create polls and vote on-chain via MetaMask.
 
-## Install the dependencies
-```bash
-yarn
-# or
-npm install
-```
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
-```bash
-quasar dev
-```
+## 🛠 Tech Stack
 
+**Contract:** Solidity.
 
-### Lint the files
-```bash
-yarn lint
-# or
-npm run lint
-```
+**Blockchain:** Ethereum Goerli.
 
+**Application:** Quasar framework.
 
+## 🔗 Contract address
 
-### Build the app for production
-```bash
-quasar build
-```
+[![ethereum](https://img.shields.io/badge/Contract_address-1DA1F2?style=for-the-badge&logo=ethereum&logoColor=white)](https://goerli.etherscan.io/address/0xf27b9c47892bd7ed6b9cd936bb3f8bac4de2292f)
 
-### Customize the configuration
-See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+## Authors
+
+- [Alex Braun](https://github.com/Braun-Alex)
